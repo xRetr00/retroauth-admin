@@ -38,6 +38,24 @@
                     <i class="fas fa-cog mr-3"></i>
                     Settings
                 </a>
+                <a @click="currentView = 'levels'" 
+                   :class="{'bg-blue-600': currentView === 'levels'}"
+                   class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gray-700 cursor-pointer">
+                    <i class="fas fa-layer-group mr-3"></i>
+                    Level Control
+                </a>
+                <a @click="currentView = 'logs'" 
+                   :class="{'bg-blue-600': currentView === 'logs'}"
+                   class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gray-700 cursor-pointer">
+                    <i class="fas fa-history mr-3"></i>
+                    System Logs
+                </a>
+                <a @click="currentView = 'hwid'" 
+                   :class="{'bg-blue-600': currentView === 'hwid'}"
+                   class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gray-700 cursor-pointer">
+                    <i class="fas fa-microchip mr-3"></i>
+                    HWID Manager
+                </a>
             </nav>
         </div>
 
@@ -225,6 +243,180 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Key Mask Configuration -->
+                    <div class="bg-gray-800 p-6 rounded-lg">
+                        <h3 class="text-xl mb-4">License Key Format</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Key Mask</label>
+                                <input v-model="settings.keyMask" 
+                                       placeholder="XXXX-XXXX-XXXX-XXXX"
+                                       class="w-full bg-gray-700 rounded p-2 text-white">
+                                <p class="text-sm text-gray-400 mt-1">
+                                    Use X for random characters, # for numbers, @ for letters
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 mb-2">Prefix</label>
+                                <input v-model="settings.keyPrefix" 
+                                       placeholder="RETRO-"
+                                       class="w-full bg-gray-700 rounded p-2 text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HWID Settings -->
+                    <div class="bg-gray-800 p-6 rounded-lg">
+                        <h3 class="text-xl mb-4">HWID Settings</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" 
+                                       v-model="settings.hwidLock" 
+                                       class="mr-2">
+                                <label class="text-gray-400">Enable HWID Lock</label>
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 mb-2">Max HWID Resets</label>
+                                <input v-model="settings.maxHwidResets" 
+                                       type="number" 
+                                       class="w-full bg-gray-700 rounded p-2 text-white">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Control View -->
+            <div v-if="currentView === 'levels'" class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">Level Management</h2>
+                    <button @click="showLevelModal = true" 
+                            class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Add Level
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div v-for="level in levels" class="bg-gray-800 p-6 rounded-lg">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold">Level {{level.id}}</h3>
+                                <p class="text-gray-400">{{level.name}}</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="editLevel(level)" class="text-blue-500 hover:text-blue-400">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button @click="deleteLevel(level.id)" class="text-red-500 hover:text-red-400">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Max Duration:</span>
+                                <span>{{level.maxDuration}} days</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Features:</span>
+                                <span>{{level.features.length}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Logs View -->
+            <div v-if="currentView === 'logs'" class="space-y-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">System Logs</h2>
+                    <div class="flex space-x-4">
+                        <select v-model="logFilters.type" class="bg-gray-700 rounded p-2 text-white">
+                            <option value="">All Types</option>
+                            <option value="auth">Authentication</option>
+                            <option value="license">License</option>
+                            <option value="system">System</option>
+                        </select>
+                        <button @click="clearLogs" class="text-red-500 hover:text-red-400">
+                            Clear Logs
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg overflow-hidden">
+                    <div class="max-h-[600px] overflow-y-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-700 sticky top-0">
+                                <tr>
+                                    <th class="p-4 text-left">Timestamp</th>
+                                    <th class="p-4 text-left">Type</th>
+                                    <th class="p-4 text-left">Action</th>
+                                    <th class="p-4 text-left">Details</th>
+                                    <th class="p-4 text-left">IP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="log in filteredLogs" class="border-t border-gray-700">
+                                    <td class="p-4 text-sm">{{formatDateTime(log.timestamp)}}</td>
+                                    <td class="p-4">
+                                        <span :class="{
+                                            'bg-blue-900 text-blue-300': log.type === 'auth',
+                                            'bg-green-900 text-green-300': log.type === 'license',
+                                            'bg-yellow-900 text-yellow-300': log.type === 'system'
+                                        }" class="px-2 py-1 rounded-full text-sm">
+                                            {{log.type}}
+                                        </span>
+                                    </td>
+                                    <td class="p-4">{{log.action}}</td>
+                                    <td class="p-4 text-sm text-gray-400">{{log.details}}</td>
+                                    <td class="p-4 text-sm">{{log.ip}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HWID Manager View -->
+            <div v-if="currentView === 'hwid'" class="space-y-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">HWID Management</h2>
+                    <div class="flex space-x-4">
+                        <input v-model="hwidFilters.search" 
+                               placeholder="Search HWID or License..." 
+                               class="bg-gray-700 rounded p-2 text-white">
+                        <button @click="resetAllHWID" 
+                                class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg">
+                            Reset All HWID
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-4 text-left">License Key</th>
+                                <th class="p-4 text-left">HWID</th>
+                                <th class="p-4 text-left">Last Updated</th>
+                                <th class="p-4 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="binding in filteredHWIDs" class="border-t border-gray-700">
+                                <td class="p-4">{{binding.licenseKey}}</td>
+                                <td class="p-4 text-sm font-mono">{{binding.hwid}}</td>
+                                <td class="p-4">{{formatDateTime(binding.updatedAt)}}</td>
+                                <td class="p-4">
+                                    <button @click="resetHWID(binding.licenseKey)" 
+                                            class="text-red-500 hover:text-red-400 mr-2">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -289,7 +481,11 @@
                     settings: {
                         apiUrl: '',
                         defaultDuration: 30,
-                        defaultLevel: 1
+                        defaultLevel: 1,
+                        keyMask: 'XXXX-XXXX-XXXX-XXXX',
+                        keyPrefix: 'RETRO-',
+                        hwidLock: true,
+                        maxHwidResets: 3
                     },
                     recentActivity: [
                         {
@@ -308,7 +504,36 @@
                             icon: 'fas fa-ban',
                             color: '#F87171'
                         }
-                    ]
+                    ],
+                    levels: [
+                        { id: 1, name: 'Basic', maxDuration: 30, features: ['feature1'] },
+                        { id: 2, name: 'Premium', maxDuration: 90, features: ['feature1', 'feature2'] },
+                        { id: 3, name: 'Enterprise', maxDuration: 365, features: ['feature1', 'feature2', 'feature3'] }
+                    ],
+                    logs: [
+                        {
+                            timestamp: new Date(),
+                            type: 'auth',
+                            action: 'Login Attempt',
+                            details: 'Failed login attempt',
+                            ip: '192.168.1.1'
+                        }
+                        // ... more logs
+                    ],
+                    logFilters: {
+                        type: ''
+                    },
+                    hwidBindings: [
+                        {
+                            licenseKey: 'XXXX-XXXX',
+                            hwid: '123456789',
+                            updatedAt: new Date()
+                        }
+                        // ... more bindings
+                    ],
+                    hwidFilters: {
+                        search: ''
+                    }
                 }
             },
             computed: {
@@ -322,6 +547,18 @@
                             license.level === parseInt(this.filters.level)
                         return matchesSearch && matchesStatus && matchesLevel
                     })
+                },
+                filteredLogs() {
+                    return this.logs.filter(log => 
+                        !this.logFilters.type || log.type === this.logFilters.type
+                    )
+                },
+                filteredHWIDs() {
+                    return this.hwidBindings.filter(binding =>
+                        !this.hwidFilters.search || 
+                        binding.licenseKey.toLowerCase().includes(this.hwidFilters.search.toLowerCase()) ||
+                        binding.hwid.toLowerCase().includes(this.hwidFilters.search.toLowerCase())
+                    )
                 }
             },
             methods: {
@@ -425,6 +662,58 @@
                             }
                         }
                     })
+                },
+                formatDateTime(date) {
+                    return new Date(date).toLocaleString()
+                },
+                async resetHWID(licenseKey) {
+                    if (!confirm('Are you sure you want to reset this HWID?')) return
+                    try {
+                        await axios.post(`${this.apiUrl}/licenses/reset-hwid`, { key: licenseKey })
+                        const binding = this.hwidBindings.find(b => b.licenseKey === licenseKey)
+                        if (binding) binding.hwid = null
+                        this.addActivity({
+                            action: 'HWID Reset',
+                            status: 'Success',
+                            statusClass: 'bg-blue-900 text-blue-300',
+                            icon: 'fas fa-undo',
+                            color: '#60A5FA'
+                        })
+                    } catch (error) {
+                        alert('Error resetting HWID: ' + error.message)
+                    }
+                },
+                async resetAllHWID() {
+                    if (!confirm('Are you sure you want to reset all HWIDs? This cannot be undone.')) return
+                    try {
+                        await axios.post(`${this.apiUrl}/licenses/reset-all-hwid`)
+                        this.hwidBindings.forEach(binding => binding.hwid = null)
+                        this.addActivity({
+                            action: 'All HWIDs Reset',
+                            status: 'Success',
+                            statusClass: 'bg-blue-900 text-blue-300',
+                            icon: 'fas fa-undo',
+                            color: '#60A5FA'
+                        })
+                    } catch (error) {
+                        alert('Error resetting HWIDs: ' + error.message)
+                    }
+                },
+                async clearLogs() {
+                    if (!confirm('Are you sure you want to clear all logs? This cannot be undone.')) return
+                    try {
+                        await axios.post(`${this.apiUrl}/logs/clear`)
+                        this.logs = []
+                        this.addActivity({
+                            action: 'Logs Cleared',
+                            status: 'Success',
+                            statusClass: 'bg-yellow-900 text-yellow-300',
+                            icon: 'fas fa-trash',
+                            color: '#FBBF24'
+                        })
+                    } catch (error) {
+                        alert('Error clearing logs: ' + error.message)
+                    }
                 }
             },
             mounted() {
