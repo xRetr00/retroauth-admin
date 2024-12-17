@@ -44,32 +44,6 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-    <div v-if="!isAuthenticated" class="fixed inset-0 bg-gray-900 flex items-center justify-center">
-        <div class="bg-gray-800 p-8 rounded-lg w-96 space-y-6">
-            <div class="text-center">
-                <h1 class="text-2xl font-bold text-blue-500">RetroAuth</h1>
-                <p class="text-gray-400">Admin Login</p>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-gray-400 mb-2">Username</label>
-                    <input v-model="auth.username" 
-                           type="text" 
-                           class="w-full bg-gray-700 rounded p-2 text-white">
-                </div>
-                <div>
-                    <label class="block text-gray-400 mb-2">Password</label>
-                    <input v-model="auth.password" 
-                           type="password" 
-                           class="w-full bg-gray-700 rounded p-2 text-white">
-                </div>
-                <button @click="login" 
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Login
-                </button>
-            </div>
-        </div>
-    </div>
     <div id="app" class="min-h-screen">
         <!-- Sidebar -->
         <div class="fixed top-0 left-0 h-screen w-64 bg-gray-800 p-4">
@@ -620,7 +594,6 @@
                             details: 'Failed login attempt',
                             ip: '192.168.1.1'
                         }
-                        // ... more logs
                     ],
                     logFilters: {
                         type: ''
@@ -631,18 +604,10 @@
                             hwid: '123456789',
                             updatedAt: new Date()
                         }
-                        // ... more bindings
                     ],
                     hwidFilters: {
                         search: ''
                     },
-                    isAuthenticated: false,
-                    auth: {
-                        username: '',
-                        password: ''
-                    },
-                    adminName: 'Admin User',
-                    adminHash: 'md5-hash-for-gravatar',
                     selectedLicenses: [],
                     selectAll: false,
                     notifications: []
@@ -827,30 +792,6 @@
                         alert('Error clearing logs: ' + error.message)
                     }
                 },
-                async login() {
-                    try {
-                        const response = await axios.post(`${this.apiUrl}/auth/login`, this.auth)
-                        localStorage.setItem('token', response.data.token)
-                        this.isAuthenticated = true
-                        this.adminName = response.data.name
-                        this.adminHash = response.data.hash
-                        this.addNotification('Login successful', 'success')
-                    } catch (error) {
-                        this.addNotification('Login failed: ' + error.message, 'error')
-                    }
-                },
-                logout() {
-                    localStorage.removeItem('token')
-                    this.isAuthenticated = false
-                    this.auth = { username: '', password: '' }
-                },
-                addNotification(message, type = 'info') {
-                    const id = Date.now()
-                    this.notifications.push({ id, message, type })
-                    setTimeout(() => {
-                        this.notifications = this.notifications.filter(n => n.id !== id)
-                    }, 5000)
-                },
                 async extendLicense(license) {
                     const days = await this.showPrompt('Enter number of days to extend:')
                     if (!days) return
@@ -937,21 +878,6 @@
                     if (this.currentView === 'dashboard') {
                         this.initCharts()
                     }
-                })
-                
-                const token = localStorage.getItem('token')
-                if (token) {
-                    this.isAuthenticated = true
-                    // Fetch user info if needed
-                }
-                
-                // Add axios interceptor for authentication
-                axios.interceptors.request.use((config) => {
-                    const token = localStorage.getItem('token')
-                    if (token) {
-                        config.headers.Authorization = `Bearer ${token}`
-                    }
-                    return config
                 })
             },
             watch: {
