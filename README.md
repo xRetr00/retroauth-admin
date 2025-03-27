@@ -49,42 +49,6 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 
 A modern web interface for managing RetroAuth licenses.
 
-## Deployment to GitHub Pages
-
-1. Create a new GitHub repository:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/retroauth-admin.git
-   git push -u origin main
-   ```
-
-2. Enable GitHub Pages:
-   - Go to your repository settings
-   - Navigate to "Pages" section
-   - Select "main" branch as source
-   - Select "/(root)" as folder
-   - Click "Save"
-
-3. Update API URL:
-   - Open `index.html`
-   - Find the `apiUrl` variable
-   - Replace with your InfinityFree domain:
-     ```javascript
-     apiUrl: 'https://your-subdomain.infinityfree.com/api/v1'
-     ```
-
-4. Push changes:
-   ```bash
-   git add .
-   git commit -m "Update API URL"
-   git push
-   ```
-
-Your admin panel will be available at: `https://YOUR_USERNAME.github.io/retroauth-admin`
-
 ## Features
 
 - Create new license keys
@@ -104,7 +68,7 @@ Your admin panel will be available at: `https://YOUR_USERNAME.github.io/retroaut
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/retroauth-admin.git
+   git clone https://github.com/xRetr00/retroauth-admin.git
    cd retroauth-admin
    ```
 
